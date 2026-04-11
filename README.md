@@ -45,6 +45,7 @@ Open '.env.example' or '.env' file, the fill in your values
 ```bash
 npm run start:dev
 ```
+
 The server should be available at `http://localhost:3000`.
 
 ## Verify the setup
@@ -60,13 +61,13 @@ Expected response:
 
 ## Available Scripts
 
-| Script              | Description                              |
-|---------------------|------------------------------------------|
-| npm run start:dev   | Start server in watch mode               |
-| npm run build       | Compile TypeScript to JavaScript         |
-| npm run lint        | Run ESLint with auto-fix                 |
-| npm run format      | Run Prettier formatter                   |
-| npm run test        | Run unit tests                           |
+| Script            | Description                      |
+| ----------------- | -------------------------------- |
+| npm run start:dev | Start server in watch mode       |
+| npm run build     | Compile TypeScript to JavaScript |
+| npm run lint      | Run ESLint with auto-fix         |
+| npm run format    | Run Prettier formatter           |
+| npm run test      | Run unit tests                   |
 
 ## Project Structure
 
