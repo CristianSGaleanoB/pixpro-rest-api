@@ -4,4 +4,9 @@ export const appConfig = () => ({
   database: {
     uri: process.env.MONGODB_URI,
   },
+  keycloak: {
+    url: process.env.KEYCLOAK_URL || 'http://localhost:8085',
+    realm: process.env.KEYCLOAK_REALM || 'pixpro-realm',
+    clientId: process.env.KEYCLOAK_CLIENT_ID || 'pixpro-backend-client',
+  },
 });
