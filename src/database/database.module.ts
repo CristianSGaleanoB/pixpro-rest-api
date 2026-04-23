@@ -1,7 +1,8 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Connection, ConnectionStates } from 'mongoose';
+import { AppLogger } from '../common/services/app-logger.service';
 
 @Module({
   imports: [
@@ -10,15 +11,21 @@ import { Connection, ConnectionStates } from 'mongoose';
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('database.uri'),
         connectionFactory: (connection: Connection) => {
+          const logger = new AppLogger('MongoDB');
+          const host = configService.get<string>('database.host') || 'localhost';
+
           if (connection.readyState === ConnectionStates.connected) {
-            Logger.log('MongoDB Successfully Connected');
+            logger.databaseConnected('MongoDB', host);
           }
+
           connection.on('connected', () => {
-            Logger.log('Established connection to MongoDB');
+            logger.databaseConnected('MongoDB', host);
           });
-          connection.on('error', (error) => {
-            Logger.error(`Error in the MongoDB Connection: ${error}`);
+
+          connection.on('error', (error: string) => {
+            logger.error(`Connection error: ${error}`);
           });
+
           return connection;
         },
       }),
