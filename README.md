@@ -21,13 +21,12 @@ Is the Backend REST API for the PixPro intelligent image processing platform. Bu
 
 ```bash
 git clone <repository-url>
-cd pixpro-api
 ```
 
 ### 2. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 By the way, this also sets up Husky Git hooks automatically.
@@ -43,7 +42,7 @@ Open '.env.example' or '.env' file, the fill in your values
 ### 4. Run the development server
 
 ```bash
-npm run start:dev
+pnpm run start:dev
 ```
 
 The server should be available at `http://localhost:3000`.
