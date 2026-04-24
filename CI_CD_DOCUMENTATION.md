@@ -1,4 +1,4 @@
-﻿# CI/CD and Deployment Documentation using Docker Swarm
+# CI/CD and Deployment Documentation using Docker Swarm
 
 This document explains the continuous delivery flow, the Continuous Integration (CI) stages, the Swarm deployment design, and provides a critical reflection on the benefits, limitations, and resilience of the implemented system.
 
