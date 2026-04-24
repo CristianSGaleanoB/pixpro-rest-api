@@ -1,0 +1,53 @@
+﻿version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6.0
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - capstone-network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: examplepassword
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  api:
+    image: ${IMAGE_TAG:-pixpro-api:latest}
+    build: .
+    ports:
+      - "3001:3000"
+    networks:
+      - capstone-network
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      MONGODB_URI: "mongodb://root:examplepassword@mongo:27017/admin"
+    depends_on:
+      - mongo
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+volumes:
+  mongo-data:
+
+networks:
+  capstone-network:
+    driver: overlay
