@@ -18,6 +18,28 @@ services:
           cpus: '0.5'
           memory: 512M
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - capstone-network
+    environment:
+      RABBITMQ_DEFAULT_USER: pixpro
+      RABBITMQ_DEFAULT_PASS: pixpro123
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
   api:
     image: ${IMAGE_TAG:-pixpro-api:latest}
     build: .
@@ -29,8 +51,12 @@ services:
       PORT: 3000
       NODE_ENV: production
       MONGODB_URI: "mongodb://root:examplepassword@mongo:27017/admin"
+      RABBITMQ_URL: "amqp://pixpro:pixpro123@rabbitmq:5672"
+      RABBITMQ_EXCHANGE: "pixpro.events"
+      RABBITMQ_EXCHANGE_TYPE: "topic"
     depends_on:
       - mongo
+      - rabbitmq
     deploy:
       replicas: 3
       update_config:
