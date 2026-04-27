@@ -1,0 +1,58 @@
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE
+  DOCKER_TAG: v1.0.$CI_PIPELINE_IID
+
+cache:
+  paths:
+    - node_modules/
+
+install-deps:
+  image: node:22-alpine
+  stage: install
+  script:
+    - npm install -g pnpm
+    - pnpm install
+
+unit-test:
+  image: node:22-alpine
+  stage: test
+  dependencies:
+    - install-deps
+  script:
+    - npm install -g pnpm
+    - pnpm test:cov
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+build-image:
+  image: docker:24.0.5
+  stage: build
+  services:
+    - docker:24.0.5-dind
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG .
+    - docker push $DOCKER_IMAGE_NAME:$DOCKER_TAG
+
+deploy-swarm:
+  image: alpine:latest
+  stage: deploy
+  environment:
+    name: production
+  before_script:
+    - apk add --no-cache openssh pass
+  script:
+    - echo "Deploying image $DOCKER_IMAGE_NAME:$DOCKER_TAG to Swarm Manager..."
+    - echo "Deployment simulated successfully."
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
