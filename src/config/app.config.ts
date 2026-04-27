@@ -10,7 +10,7 @@ export const appConfig = () => ({
     clientId: process.env.KEYCLOAK_CLIENT_ID || 'pixpro-backend-client',
   },
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://pixpro:pixpro123@localhost:5672',
+    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
     exchange: process.env.RABBITMQ_EXCHANGE || 'pixpro.events',
     exchangeType: process.env.RABBITMQ_EXCHANGE_TYPE || 'topic',
   },
