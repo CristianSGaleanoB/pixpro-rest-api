@@ -14,6 +14,13 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
   private readonly exchange: string;
   private readonly exchangeType: string;
 
+  private readonly queues = [
+    {
+      name: 'pixpro.image.uploaded',
+      routingKey: 'image.uploaded',
+    },
+  ];
+
   constructor(private readonly configService: ConfigService) {
     this.url = this.configService.getOrThrow<string>('rabbitmq.url');
     this.exchange = this.configService.getOrThrow<string>('rabbitmq.exchange');
@@ -46,12 +53,25 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
         durable: true,
       });
 
+      await this.setupQueues();
+
       this.logger.log(
         `Connected to RabbitMQ — Exchange: "${this.exchange}" (${this.exchangeType})`,
       );
     } catch (error) {
       this.logger.error('Failed to connect to RabbitMQ', error);
       throw error;
+    }
+  }
+
+  private async setupQueues(): Promise<void> {
+    for (const queue of this.queues) {
+      await this.channel?.assertQueue(queue.name, { durable: true });
+      await this.channel?.bindQueue(queue.name, this.exchange, queue.routingKey);
+
+      this.logger.log(
+        `Queue ready: "${queue.name}" bound to "${this.exchange}" with key "${queue.routingKey}"`,
+      );
     }
   }
 
