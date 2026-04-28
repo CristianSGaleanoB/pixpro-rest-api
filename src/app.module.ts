@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { EventsModule } from './events/events.module';
+import { BrokerModule } from './broker/broker.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
@@ -17,8 +19,10 @@ import { EventsModule } from './events/events.module';
       load: [appConfig],
     }),
     AuthModule,
+    BrokerModule,
     DatabaseModule,
     EventsModule,
+    ImagesModule,
   ],
   controllers: [AppController],
   providers: [

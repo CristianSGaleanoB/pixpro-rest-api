@@ -6,10 +6,7 @@ import { passportJwtSecret } from 'jwks-rsa';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
-export class KeycloakJwtStrategy extends PassportStrategy(
-  Strategy,
-  'keycloak',
-) {
+export class KeycloakJwtStrategy extends PassportStrategy(Strategy, 'keycloak') {
   constructor(configService: ConfigService) {
     const keycloakUrl = configService.get<string>('keycloak.url');
     const realm = configService.get<string>('keycloak.realm');

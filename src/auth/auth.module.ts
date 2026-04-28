@@ -4,11 +4,9 @@ import { KeycloakJwtStrategy } from './strategies/keycloak-jwt.strategy';
 import { AuthController } from './auth.controller';
 
 @Module({
-  imports: [
-    PassportModule.register({ defaultStrategy: 'keycloak' }),
-  ],
+  imports: [PassportModule.register({ defaultStrategy: 'keycloak' })],
   controllers: [AuthController],
   providers: [KeycloakJwtStrategy],
   exports: [PassportModule],
 })
-export class AuthModule { }
+export class AuthModule {}
