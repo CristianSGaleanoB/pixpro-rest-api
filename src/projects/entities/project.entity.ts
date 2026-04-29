@@ -22,10 +22,11 @@ export class Project {
   processedImages: number;
 
   @Prop({
+    type: String,
     enum: ProjectStatus,
     default: ProjectStatus.ACTIVE,
   })
-  status: string;
+  status: ProjectStatus;
 
   @Prop({ default: false })
   isPublic: boolean;
