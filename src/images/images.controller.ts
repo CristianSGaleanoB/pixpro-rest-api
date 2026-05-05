@@ -13,12 +13,13 @@ export class ImagesController {
   async uploadImage(
     @Body() dto: UploadImageDto,
     @CurrentUser() user: JwtPayload,
-  ): Promise<{ message: string; correlationId: string }> {
-    const correlationId = await this.imagesService.handleImageUpload(dto, user.sub);
+  ): Promise<{ message: string; correlationId: string; imageId: string }> {
+    const { correlationId, imageId } = await this.imagesService.handleImageUpload(dto, user?.sub);
 
     return {
       message: 'Image queued for processing',
       correlationId,
+      imageId,
     };
   }
 }
