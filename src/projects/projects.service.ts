@@ -49,7 +49,7 @@ export class ProjectsService {
     if (project.ownerId !== ownerId) {
       throw new ForbiddenException(`You are not authorized to delete this project`);
     }
-    this.projectModel.findByIdAndDelete(id);
+    await this.projectModel.findByIdAndDelete(id);
     return 'Project deleted';
   }
 }

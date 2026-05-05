@@ -2,6 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 
+jest.mock('../auth/decorators/current-user.decorator', () => ({
+  CurrentUser: () => () => {},
+}));
+
+jest.mock('../auth/interfaces/jwt-payload.interface', () => ({}));
+
 describe('ProjectsController', () => {
   let controller: ProjectsController;
 
