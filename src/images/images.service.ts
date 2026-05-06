@@ -10,7 +10,10 @@ export class ImagesService {
 
   constructor(private readonly brokerService: BrokerService) {}
 
-  async handleImageUpload(dto: UploadImageDto, userId: string): Promise<string> {
+  async handleImageUpload(
+    dto: UploadImageDto,
+    userId: string,
+  ): Promise<{ correlationId: string; imageId: string }> {
     const correlationId = randomUUID();
     const imageId = randomUUID();
 
@@ -37,6 +40,6 @@ export class ImagesService {
       `ImageUploaded event dispatched - imageId: ${imageId} | correlationId: ${correlationId}`,
     );
 
-    return correlationId;
+    return { correlationId, imageId };
   }
 }
