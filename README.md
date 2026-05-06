@@ -21,13 +21,12 @@ Is the Backend REST API for the PixPro intelligent image processing platform. Bu
 
 ```bash
 git clone <repository-url>
-cd pixpro-api
 ```
 
 ### 2. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 By the way, this also sets up Husky Git hooks automatically.
@@ -43,7 +42,7 @@ Open '.env.example' or '.env' file, the fill in your values
 ### 4. Run the development server
 
 ```bash
-npm run start:dev
+pnpm run start:dev
 ```
 
 The server should be available at `http://localhost:3000`.
@@ -83,3 +82,71 @@ src/
 ```
 
 (This is the structure at the final point of the Issue1, will be modified at time pass).
+
+
+## Docker Deployment Notes
+
+This project currently uses **Docker Swarm** as its primary container orchestration strategy.
+
+Although the repository includes a `docker-compose.yml` file, its configuration is intended for use with:
+
+- `docker swarm init`
+- `docker stack deploy`
+
+and not as a regular local `docker compose up` workflow.
+
+### Important
+
+The current `docker-compose.yml` includes Swarm-specific settings such as:
+
+- `deploy`
+- `replicas`
+- `update_config`
+- `overlay` networks
+
+Because of this, running:
+
+```bash
+docker compose up --build
+```
+
+may fail with errors related to overlay networks or Swarm manager requirements.
+
+## Recommended Docker Workflow
+### 1. Initialize Docker Swarm
+```bash
+docker swarm init
+```
+
+### 2. Initialize Docker Swarm
+```bash
+docker build -t pixpro-api:latest .
+```
+
+### 3. Deploy the stack
+```bash
+docker stack deploy -c docker-compose.yml capstone-stack
+```
+
+### 4. Verify services
+```bash
+docker service ls
+docker stack services capstone-stack
+docker stack ps capstone-stack
+```
+
+### 5. Verify the health endpoint
+```bash
+curl http://127.0.0.1:3001/api/health
+```
+or
+```bash
+curl -4 http://localhost:3001/api/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok"
+}
+```

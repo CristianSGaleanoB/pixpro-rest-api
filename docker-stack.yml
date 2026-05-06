@@ -1,0 +1,126 @@
+version: "3.9"
+
+services:
+  web-blue:
+    image: ${DOCKER_IMAGE_NAME:-pixpro-api}:${DOCKER_TAG:-blue}
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: ingress
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      MONGODB_URI: "mongodb://mongo:27017/pixpro"
+    secrets:
+      - mongodb_uri
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - pixpro-overlay
+    deploy:
+      replicas: 2
+      placement:
+        constraints: []
+        preferences:
+          - spread: node.id
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  web-green:
+    image: ${DOCKER_IMAGE_NAME:-pixpro-api}:${DOCKER_TAG:-green}
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      MONGODB_URI: "mongodb://mongo:27017/pixpro"
+    secrets:
+      - mongodb_uri
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - pixpro-overlay
+    deploy:
+      replicas: 2
+      placement:
+        constraints: []
+        preferences:
+          - spread: node.id
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  mongo:
+    image: mongo:7-jammy
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - pixpro-overlay
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+        reservations:
+          cpus: "0.50"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+secrets:
+  mongodb_uri:
+    external: true
+
+volumes:
+  mongo_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  pixpro-overlay:
+    driver: overlay
+    attachable: true

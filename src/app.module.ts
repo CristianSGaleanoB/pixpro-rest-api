@@ -8,6 +8,9 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { EventsModule } from './events/events.module';
+import { BrokerModule } from './broker/broker.module';
+import { ImagesModule } from './images/images.module';
 
 @Module({
   imports: [
@@ -15,8 +18,11 @@ import { RolesGuard } from './auth/guards/roles.guard';
       isGlobal: true,
       load: [appConfig],
     }),
-    DatabaseModule,
     AuthModule,
+    BrokerModule,
+    DatabaseModule,
+    EventsModule,
+    ImagesModule,
   ],
   controllers: [AppController],
   providers: [
@@ -31,4 +37,4 @@ import { RolesGuard } from './auth/guards/roles.guard';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}
