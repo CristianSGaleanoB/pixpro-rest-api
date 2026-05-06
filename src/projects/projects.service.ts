@@ -38,7 +38,7 @@ export class ProjectsService {
       throw new ForbiddenException(`You are not authorized to update this project`);
     }
 
-    return this.projectModel.findByIdAndUpdate(id, updateProjectDto, { new: true });
+    return this.projectModel.findByIdAndUpdate(id, updateProjectDto, { returnDocument: 'after' });
   }
 
   async remove(id: string, ownerId: string) {
