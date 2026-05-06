@@ -10,7 +10,6 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
   @Post()
   create(@Body() createProjectDto: CreateProjectDto, @CurrentUser() user: JwtPayload) {
-    console.log(user.sub);
     return this.projectsService.create(createProjectDto, user.sub);
   }
 

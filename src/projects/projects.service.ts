@@ -50,6 +50,6 @@ export class ProjectsService {
       throw new ForbiddenException(`You are not authorized to delete this project`);
     }
     await this.projectModel.findByIdAndDelete(id);
-    return 'Project deleted';
+    return { message: 'Project deleted' };
   }
 }
