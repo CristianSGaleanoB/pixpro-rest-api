@@ -11,6 +11,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
 import { EventsModule } from './events/events.module';
 import { BrokerModule } from './broker/broker.module';
 import { ImagesModule } from './images/images.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ImagesModule } from './images/images.module';
     DatabaseModule,
     EventsModule,
     ImagesModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [
