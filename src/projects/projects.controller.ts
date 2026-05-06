@@ -23,8 +23,6 @@ export class ProjectsController {
     return this.projectsService.findOne(id, user.sub);
   }
 
-  // -------------------------
-
   @Patch(':id')
   update(
     @Param('id') id: string,
