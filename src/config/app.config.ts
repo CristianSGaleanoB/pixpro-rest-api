@@ -6,6 +6,7 @@ export const appConfig = () => ({
   },
   keycloak: {
     url: process.env.KEYCLOAK_URL || 'http://localhost:8085',
+    issuer: process.env.KEYCLOAK_ISSUER,
     realm: process.env.KEYCLOAK_REALM || 'pixpro-realm',
     clientId: process.env.KEYCLOAK_CLIENT_ID || 'pixpro-backend-client',
   },
