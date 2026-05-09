@@ -12,6 +12,8 @@ import { EventsModule } from './events/events.module';
 import { BrokerModule } from './broker/broker.module';
 import { ImagesModule } from './images/images.module';
 import { ProjectsModule } from './projects/projects.module';
+import { RedisModule } from './redis/redis.module';
+import { QueriesModule } from './queries/queries.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { ProjectsModule } from './projects/projects.module';
     EventsModule,
     ImagesModule,
     ProjectsModule,
+    RedisModule,
+    QueriesModule,
   ],
   controllers: [AppController],
   providers: [

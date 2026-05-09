@@ -19,6 +19,10 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
       name: 'pixpro.image.uploaded',
       routingKey: 'image.uploaded',
     },
+    {
+      name: 'pixpro.image.processed',
+      routingKey: 'image.processed',
+    },
   ];
 
   constructor(private readonly configService: ConfigService) {
@@ -59,8 +63,10 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
         `Connected to RabbitMQ — Exchange: "${this.exchange}" (${this.exchangeType})`,
       );
     } catch (error) {
-      this.logger.error('Failed to connect to RabbitMQ', error);
-      throw error;
+      this.logger.error(
+        'Failed to connect to RabbitMQ — broker features will be unavailable',
+        error,
+      );
     }
   }
 
@@ -83,6 +89,10 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       this.logger.error('Error closing RabbitMQ connection', error);
     }
+  }
+
+  isConnected(): boolean {
+    return this.channel !== null;
   }
 
   private getChannel(): Channel {
@@ -122,5 +132,32 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
       );
       throw error;
     }
+  }
+
+  async subscribe(
+    queueName: string,
+    onMessage: (payload: unknown) => Promise<void>,
+  ): Promise<void> {
+    if (!this.isConnected()) {
+      this.logger.warn(`Cannot subscribe to "${queueName}" — RabbitMQ is not connected`);
+      return;
+    }
+
+    const channel = this.getChannel();
+
+    await channel.consume(queueName, (msg) => {
+      if (msg) {
+        onMessage(JSON.parse(msg.content.toString()))
+          .then(() => {
+            channel.ack(msg);
+          })
+          .catch((error) => {
+            this.logger.error(`Error processing message from queue "${queueName}"`, error);
+            channel.nack(msg, false, false);
+          });
+      }
+    });
+
+    this.logger.log(`Subscribed to queue "${queueName}"`);
   }
 }
