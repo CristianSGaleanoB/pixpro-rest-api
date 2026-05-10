@@ -28,6 +28,8 @@ export interface ImageProcessedEvent {
   resultUrl: string;
 }
 
+import { ImageUploadedEvent } from '../events/schemas/image-uploaded.event';
+
 @Injectable()
 export class QueriesService implements OnModuleInit {
   private readonly logger = new Logger(QueriesService.name);
@@ -39,12 +41,37 @@ export class QueriesService implements OnModuleInit {
 
   async onModuleInit() {
     try {
+      await this.brokerService.subscribe('image.uploaded', async (payload: unknown) =>
+        this.handleImageUploaded(payload as ImageUploadedEvent),
+      );
       await this.brokerService.subscribe('pixpro.image.processed', async (payload) =>
         this.handleImageProcessed(payload),
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Could not subscribe to broker — RabbitMQ may be unavailable: ${message}`);
+    }
+  }
+
+  private async handleImageUploaded(event: ImageUploadedEvent) {
+    const { projectId, imageId, storagePath } = event;
+    this.logger.log(`Optimization: Pre-populating Redis for uploaded image ${imageId}`);
+
+    const images = await this.getProjectImages(projectId);
+
+    if (!images.some((img) => img.id === imageId)) {
+      const newImage: ProjectImage = {
+        id: imageId,
+        projectId,
+        filename: storagePath.split('/').pop() || 'image',
+        sizeBytes: 0,
+        uploadDate: new Date().toISOString(),
+        status: 'processing',
+        progress: 10,
+      };
+
+      images.push(newImage);
+      await this.redisService.set(`project:${projectId}:images`, images);
     }
   }
 
@@ -57,7 +84,7 @@ export class QueriesService implements OnModuleInit {
       return;
     }
 
-    this.logger.log(`Processing ImageProcessedEvent — project: ${projectId}, image: ${imageId}`);
+    this.logger.log(`Updating Read Model — project: ${projectId}, image: ${imageId}`);
 
     const images = await this.getProjectImages(projectId);
     const imageIndex = images.findIndex((img) => img.id === imageId);
@@ -66,6 +93,7 @@ export class QueriesService implements OnModuleInit {
       images[imageIndex].status = 'complete';
       images[imageIndex].progress = 100;
       images[imageIndex].originalUrl = resultUrl;
+      images[imageIndex].thumbnailUrl = resultUrl;
 
       await this.redisService.set(`project:${projectId}:images`, images);
       this.logger.log(`Redis cache updated for image ${imageId} in project ${projectId}`);
