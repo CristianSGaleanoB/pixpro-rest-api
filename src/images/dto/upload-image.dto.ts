@@ -1,28 +1,9 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-
-function toBoolean(value: unknown): boolean {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase();
-
-    if (normalized === 'true' || normalized === '1') {
-      return true;
-    }
-
-    if (normalized === 'false' || normalized === '0') {
-      return false;
-    }
-  }
-
-  return Boolean(value);
-}
+import { toBoolean } from '../../common/utils/transform';
 
 export class UploadImageDto {
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   projectId!: string;
 
