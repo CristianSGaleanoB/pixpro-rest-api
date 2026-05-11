@@ -118,7 +118,7 @@ may fail with errors related to overlay networks or Swarm manager requirements.
 docker swarm init
 ```
 
-### 2. Initialize Docker Swarm
+### 2. Build
 ```bash
 docker build -t pixpro-api:latest .
 ```

@@ -3,7 +3,8 @@ FROM node:22-alpine AS base
 RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --ignore-scripts
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --ignore-scripts
 
 FROM base AS development
 
@@ -20,7 +21,8 @@ FROM node:22-alpine AS production
 RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --prod --frozen-lockfile --ignore-scripts
 COPY --from=build /app/dist ./dist
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

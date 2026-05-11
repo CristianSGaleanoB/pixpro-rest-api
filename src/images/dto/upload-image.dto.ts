@@ -1,20 +1,21 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { toBoolean } from '../../common/utils/transform';
 
 export class UploadImageDto {
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   projectId!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  storagePath!: string;
-
+  @Transform(({ value }) => toBoolean(value))
   @IsBoolean()
   upscaler!: boolean;
 
+  @Transform(({ value }) => toBoolean(value))
   @IsBoolean()
   grayscale!: boolean;
 
+  @Transform(({ value }) => toBoolean(value))
   @IsBoolean()
   restore!: boolean;
 
