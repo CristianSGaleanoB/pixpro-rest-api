@@ -7,10 +7,8 @@ stages:
 variables:
   DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE
   DOCKER_TAG: v1.0.$CI_PIPELINE_IID
-  HUSKY: "0"
 
 cache:
-  key: "v2-${CI_COMMIT_REF_SLUG}"
   paths:
     - node_modules/
 
@@ -19,7 +17,7 @@ install-deps:
   stage: install
   script:
     - npm install -g pnpm
-    - pnpm install --ignore-scripts
+    - pnpm install
 
 unit-test:
   image: node:22-alpine
