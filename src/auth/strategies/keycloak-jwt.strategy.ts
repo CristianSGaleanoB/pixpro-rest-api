@@ -9,9 +9,10 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 export class KeycloakJwtStrategy extends PassportStrategy(Strategy, 'keycloak') {
   constructor(configService: ConfigService) {
     const keycloakUrl = configService.get<string>('keycloak.url');
+    const keycloakIssuer = configService.get<string>('keycloak.issuer');
     const realm = configService.get<string>('keycloak.realm');
-    const issuer = `${keycloakUrl}/realms/${realm}`;
-    const jwksUri = `${issuer}/protocol/openid-connect/certs`;
+    const issuer = keycloakIssuer || `${keycloakUrl}/realms/${realm}`;
+    const jwksUri = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/certs`;
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
