@@ -1,5 +1,6 @@
 FROM node:22-alpine AS base
 
+ENV HUSKY=0
 RUN npm install -g pnpm
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
