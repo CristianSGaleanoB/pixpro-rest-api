@@ -1,4 +1,5 @@
 stages:
+  - validate
   - install
   - test
   - build
@@ -7,6 +8,13 @@ stages:
 variables:
   DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE
   DOCKER_TAG: v1.0.$CI_PIPELINE_IID
+
+validate-asyncapi:
+  image: node:22-alpine
+  stage: validate
+  script:
+    - npm install -g @asyncapi/cli
+    - npm run asyncapi:validate
 
 cache:
   paths:
