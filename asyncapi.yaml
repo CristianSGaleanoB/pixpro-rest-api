@@ -42,36 +42,6 @@ channels:
           name: pixpro.events
           type: topic
           durable: true
-  imageProcessed:
-    address: image.processed
-    title: Image processed channel
-    description: Routing key triggered when the worker finishes processing
-    messages:
-      ImageProcessed:
-        payload:
-          $ref: '#/components/schemas/ImageProcessedPayload'
-    bindings:
-      amqp:
-        is: routingKey
-        exchange:
-          name: pixpro.events
-          type: topic
-          durable: true
-  preprocessingError:
-    address: preprocessing.error
-    title: Processing error channel
-    description: Routing key triggered when processing fails
-    messages:
-      ProcessingError:
-        payload:
-          $ref: '#/components/schemas/ProcessingErrorPayload'
-    bindings:
-      amqp:
-        is: routingKey
-        exchange:
-          name: pixpro.events
-          type: topic
-          durable: true
   projectCreated:
     address: project.created
     title: Project created channel
@@ -143,30 +113,6 @@ operations:
     summary: Query-service replicates the image to its read model
     channel:
       $ref: '#/channels/imageUploaded'
-  publishImageProcessed:
-    action: send
-    title: Publish image.processed
-    summary: Worker publishes when processing is complete
-    channel:
-      $ref: '#/channels/imageProcessed'
-  consumeImageProcessed:
-    action: receive
-    title: Consume image.processed
-    summary: Query-service stores the processing results
-    channel:
-      $ref: '#/channels/imageProcessed'
-  publishProcessingError:
-    action: send
-    title: Publish preprocessing.error
-    summary: Worker publishes when processing fails
-    channel:
-      $ref: '#/channels/preprocessingError'
-  consumeProcessingError:
-    action: receive
-    title: Consume preprocessing.error
-    summary: Query-service records the error
-    channel:
-      $ref: '#/channels/preprocessingError'
   publishProjectCreated:
     action: send
     title: Publish project.created
@@ -231,18 +177,6 @@ components:
             type: string
             enum:
               - application/json
-    ImageProcessed:
-      name: ImageProcessed
-      title: Image processed
-      summary: The worker finished processing an image
-      payload:
-        $ref: '#/components/schemas/ImageProcessedPayload'
-    ProcessingError:
-      name: ProcessingError
-      title: Processing error
-      summary: The worker encountered an error while processing
-      payload:
-        $ref: '#/components/schemas/ProcessingErrorPayload'
     ProjectCreated:
       name: ProjectCreated
       title: Project created
@@ -335,87 +269,6 @@ components:
         watermark:
           type: string
           description: Watermark URL to overlay (optional)
-
-    ImageProcessedPayload:
-      allOf:
-        - $ref: '#/components/schemas/BaseEvent'
-        - type: object
-          required:
-            - imageId
-            - projectId
-            - userId
-            - resultUrl
-            - metadata
-          properties:
-            event:
-              type: string
-              enum:
-                - ImageProcessed
-            imageId:
-              type: string
-            projectId:
-              type: string
-            userId:
-              type: string
-            resultUrl:
-              type: string
-              format: uri
-            metadata:
-              $ref: '#/components/schemas/ProcessingMetadata'
-
-    ProcessingMetadata:
-      type: object
-      required:
-        - processedAt
-        - durationMs
-        - appliedOptions
-      properties:
-        processedAt:
-          type: string
-          format: date-time
-        durationMs:
-          type: integer
-        appliedOptions:
-          type: array
-          items:
-            type: string
-
-    ProcessingErrorPayload:
-      allOf:
-        - $ref: '#/components/schemas/BaseEvent'
-        - type: object
-          required:
-            - imageId
-            - projectId
-            - userId
-            - error
-          properties:
-            event:
-              type: string
-              enum:
-                - ProcessingError
-            imageId:
-              type: string
-            projectId:
-              type: string
-            userId:
-              type: string
-            error:
-              $ref: '#/components/schemas/ErrorDetails'
-
-    ErrorDetails:
-      type: object
-      required:
-        - code
-        - message
-        - retryable
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        retryable:
-          type: boolean
 
     ProjectCreatedPayload:
       allOf:
