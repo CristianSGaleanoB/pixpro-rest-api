@@ -42,7 +42,7 @@ export class ImagesService {
       },
     };
 
-    await this.brokerService.publish('image.uploaded', event);
+    await this.brokerService.publish('image.uploaded', event as unknown as Record<string, unknown>);
 
     this.logger.log(
       `ImageUploaded event dispatched - imageId: ${imageId} | correlationId: ${correlationId}`,
