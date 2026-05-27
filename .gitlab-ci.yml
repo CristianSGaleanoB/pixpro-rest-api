@@ -13,8 +13,8 @@ validate-asyncapi:
   image: node:22-alpine
   stage: validate
   script:
-    - npm install -g @asyncapi/cli
-    - npm run asyncapi:validate
+    - npm install -g pnpm
+    - pnpm asyncapi:validate
 
 cache:
   paths:

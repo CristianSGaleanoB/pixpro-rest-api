@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "asyncapi:validate": "asyncapi validate asyncapi.yaml",
+    "asyncapi:validate": "pnpm dlx @asyncapi/cli validate asyncapi.yaml",
     "prepare": "husky"
   },
   "dependencies": {
@@ -42,8 +42,6 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@asyncapi/cli": "^6.0.0",
-    "@asyncapi/generator": "^3.2.1",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/eslintrc": "^3.2.0",
