@@ -1,0 +1,398 @@
+asyncapi: 3.1.0
+info:
+  title: PixPro Event Bus
+  version: 1.0.0
+  description: >
+    Async contract for the PixPro ecosystem. Defines the RabbitMQ topic
+    exchange (pixpro.events) and the WebSocket channel (pipeline_status)
+    used by the worker to notify the frontend.
+  license:
+    name: MIT
+
+defaultContentType: application/json
+
+servers:
+  rabbitmq:
+    host: localhost:5672
+    protocol: amqp
+    protocolVersion: 0.9.1
+    description: RabbitMQ message broker — pixpro.events exchange (topic)
+    security:
+      - $ref: '#/components/securitySchemes/rabbitmqCredentials'
+  worker-ws:
+    host: localhost:8765
+    protocol: wss
+    description: Socket.IO server embedded in the Python worker
+    security:
+      - $ref: '#/components/securitySchemes/jwt'
+
+channels:
+  imageUploaded:
+    address: image.uploaded
+    title: Image uploaded channel
+    description: Routing key triggered when a user uploads an image
+    messages:
+      ImageUploaded:
+        payload:
+          $ref: '#/components/schemas/ImageUploadedPayload'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: pixpro.events
+          type: topic
+          durable: true
+  projectCreated:
+    address: project.created
+    title: Project created channel
+    messages:
+      ProjectCreated:
+        payload:
+          $ref: '#/components/schemas/ProjectCreatedPayload'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: pixpro.events
+          type: topic
+          durable: true
+  projectUpdated:
+    address: project.updated
+    title: Project updated channel
+    messages:
+      ProjectUpdated:
+        payload:
+          $ref: '#/components/schemas/ProjectUpdatedPayload'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: pixpro.events
+          type: topic
+          durable: true
+  projectDeleted:
+    address: project.deleted
+    title: Project deleted channel
+    messages:
+      ProjectDeleted:
+        payload:
+          $ref: '#/components/schemas/ProjectDeletedPayload'
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: pixpro.events
+          type: topic
+          durable: true
+  pipelineStatus:
+    address: pipeline_status
+    title: WebSocket pipeline status channel
+    description: >
+      Socket.IO event emitted by the worker to the user's private room
+    messages:
+      pipelineStatus:
+        payload:
+          $ref: '#/components/schemas/PipelineStatusPayload'
+
+operations:
+  publishImageUploaded:
+    action: send
+    title: Publish image.uploaded
+    summary: rest-api publishes when a user uploads an image
+    channel:
+      $ref: '#/channels/imageUploaded'
+  consumeImageUploadedWorker:
+    action: receive
+    title: Consume image.uploaded (worker)
+    summary: Worker consumes to process the image with MediaPipe
+    channel:
+      $ref: '#/channels/imageUploaded'
+  consumeImageUploadedQuery:
+    action: receive
+    title: Consume image.uploaded (query-service)
+    summary: Query-service replicates the image to its read model
+    channel:
+      $ref: '#/channels/imageUploaded'
+  publishProjectCreated:
+    action: send
+    title: Publish project.created
+    summary: rest-api publishes when a project is created
+    channel:
+      $ref: '#/channels/projectCreated'
+  consumeProjectCreated:
+    action: receive
+    title: Consume project.created
+    summary: Query-service replicates the project
+    channel:
+      $ref: '#/channels/projectCreated'
+  publishProjectUpdated:
+    action: send
+    title: Publish project.updated
+    summary: rest-api publishes when a project is updated
+    channel:
+      $ref: '#/channels/projectUpdated'
+  consumeProjectUpdated:
+    action: receive
+    title: Consume project.updated
+    summary: Query-service replicates the change
+    channel:
+      $ref: '#/channels/projectUpdated'
+  publishProjectDeleted:
+    action: send
+    title: Publish project.deleted
+    summary: rest-api publishes when a project is deleted
+    channel:
+      $ref: '#/channels/projectDeleted'
+  consumeProjectDeleted:
+    action: receive
+    title: Consume project.deleted
+    summary: Query-service removes the project
+    channel:
+      $ref: '#/channels/projectDeleted'
+  notifyPipelineStatus:
+    action: send
+    title: Emit pipeline_status
+    summary: Worker sends progress updates to the frontend via Socket.IO
+    channel:
+      $ref: '#/channels/pipelineStatus'
+  receivePipelineStatus:
+    action: receive
+    title: Receive pipeline_status
+    summary: Frontend receives processing progress notifications
+    channel:
+      $ref: '#/channels/pipelineStatus'
+
+components:
+  messages:
+    ImageUploaded:
+      name: ImageUploaded
+      title: Image uploaded
+      summary: An image was submitted for processing
+      payload:
+        $ref: '#/components/schemas/ImageUploadedPayload'
+      headers:
+        type: object
+        properties:
+          contentType:
+            type: string
+            enum:
+              - application/json
+    ProjectCreated:
+      name: ProjectCreated
+      title: Project created
+      payload:
+        $ref: '#/components/schemas/ProjectCreatedPayload'
+    ProjectUpdated:
+      name: ProjectUpdated
+      title: Project updated
+      payload:
+        $ref: '#/components/schemas/ProjectUpdatedPayload'
+    ProjectDeleted:
+      name: ProjectDeleted
+      title: Project deleted
+      payload:
+        $ref: '#/components/schemas/ProjectDeletedPayload'
+    PipelineStatus:
+      name: pipelineStatus
+      title: Pipeline status
+      summary: Processing progress notification
+      payload:
+        $ref: '#/components/schemas/PipelineStatusPayload'
+
+  schemas:
+    BaseEvent:
+      type: object
+      required:
+        - event
+        - version
+        - timestamp
+        - correlationId
+      properties:
+        event:
+          type: string
+          description: Event type discriminator
+        version:
+          type: string
+          enum:
+            - '1.0'
+          description: Event schema version
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 UTC
+        correlationId:
+          type: string
+          format: uuid
+          description: Traceability ID
+
+    ImageUploadedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          required:
+            - projectId
+            - userId
+            - imageId
+            - storagePath
+            - processingOptions
+          properties:
+            event:
+              type: string
+              enum:
+                - ImageUploaded
+            projectId:
+              type: string
+            userId:
+              type: string
+            imageId:
+              type: string
+            storagePath:
+              type: string
+              description: Cloudinary / S3 storage path
+              example: s3://pixpro-uploads/img-abc123.png
+            processingOptions:
+              $ref: '#/components/schemas/ProcessingOptions'
+
+    ProcessingOptions:
+      type: object
+      required:
+        - upscaler
+        - grayscale
+        - restore
+      properties:
+        upscaler:
+          type: boolean
+        grayscale:
+          type: boolean
+        restore:
+          type: boolean
+        watermark:
+          type: string
+          description: Watermark URL to overlay (optional)
+
+    ProjectCreatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          required:
+            - _id
+            - name
+            - ownerId
+            - tags
+            - totalImages
+            - processedImages
+            - status
+            - isPublic
+          properties:
+            event:
+              type: string
+              enum:
+                - ProjectCreated
+            _id:
+              type: string
+            name:
+              type: string
+            ownerId:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+            totalImages:
+              type: integer
+            processedImages:
+              type: integer
+            status:
+              type: string
+            isPublic:
+              type: boolean
+
+    ProjectUpdatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          required:
+            - _id
+            - name
+            - ownerId
+            - tags
+            - totalImages
+            - processedImages
+            - status
+            - isPublic
+          properties:
+            event:
+              type: string
+              enum:
+                - ProjectUpdated
+            _id:
+              type: string
+            name:
+              type: string
+            ownerId:
+              type: string
+            tags:
+              type: array
+              items:
+                type: string
+            totalImages:
+              type: integer
+            processedImages:
+              type: integer
+            status:
+              type: string
+            isPublic:
+              type: boolean
+
+    ProjectDeletedPayload:
+      allOf:
+        - $ref: '#/components/schemas/BaseEvent'
+        - type: object
+          required:
+            - _id
+            - ownerId
+          properties:
+            event:
+              type: string
+              enum:
+                - ProjectDeleted
+            _id:
+              type: string
+            ownerId:
+              type: string
+
+    PipelineStatusPayload:
+      type: object
+      required:
+        - image_id
+        - status
+        - progress
+        - message
+      properties:
+        image_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - processing
+            - complete
+            - failed
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        message:
+          type: string
+
+  securitySchemes:
+    rabbitmqCredentials:
+      type: userPassword
+      description: Default guest/guest credentials
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Keycloak JWT. Sent as auth.token or ?token= query param
+        on Socket.IO connection. The worker validates against the
+        JWKS endpoint.
