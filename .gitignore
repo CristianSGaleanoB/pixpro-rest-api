@@ -58,3 +58,6 @@ pids
 # Docker
 .docker/
 docker-compose.override.yml
+
+# Asyncapi
+docs/asyncapi/

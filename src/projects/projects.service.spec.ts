@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProjectsService } from './projects.service';
+import { BrokerService } from '../broker/broker.service';
 import { getModelToken } from '@nestjs/mongoose';
 
 describe('ProjectsService', () => {
@@ -13,6 +14,10 @@ describe('ProjectsService', () => {
     findByIdAndDelete: jest.fn(),
   };
 
+  const mockBrokerService = {
+    publish: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -20,6 +25,10 @@ describe('ProjectsService', () => {
         {
           provide: getModelToken('Project'),
           useValue: mockProjectModel,
+        },
+        {
+          provide: BrokerService,
+          useValue: mockBrokerService,
         },
       ],
     }).compile();

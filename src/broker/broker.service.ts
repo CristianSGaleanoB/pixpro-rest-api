@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import amqp, { Channel, ChannelModel } from 'amqplib';
-import { PixProEvent } from '../events';
 
 @Injectable()
 export class BrokerService implements OnModuleInit, OnModuleDestroy {
@@ -92,8 +91,11 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
     return this.channel;
   }
 
-  async publish(routingKey: string, event: PixProEvent): Promise<void> {
+  async publish(routingKey: string, event: Record<string, unknown>): Promise<void> {
     const channel = this.getChannel();
+
+    const correlationId = (event as Record<string, string>)['correlationId'] || 'unknown';
+    const version = (event as Record<string, string>)['version'] || 'unknown';
 
     try {
       const payload = Buffer.from(JSON.stringify(event));
@@ -103,8 +105,8 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
         contentType: 'application/json',
         timestamp: Date.now(),
         headers: {
-          correlationId: event.correlationId,
-          eventVersion: event.version,
+          correlationId,
+          eventVersion: version,
         },
       });
 
@@ -113,11 +115,11 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
       }
 
       this.logger.log(
-        `Event published - routing key: "${routingKey}" | correlationId: ${event.correlationId}`,
+        `Event published - routing key: "${routingKey}" | correlationId: ${correlationId}`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to publish event - routing key: "${routingKey}" | correlationId: ${event.correlationId}`,
+        `Failed to publish event - routing key: "${routingKey}" | correlationId: ${correlationId}`,
         error,
       );
       throw error;

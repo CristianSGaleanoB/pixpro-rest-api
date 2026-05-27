@@ -3,9 +3,10 @@ import { ProjectsService } from './projects.service';
 import { ProjectsController } from './projects.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProjectSchema } from './entities/project.entity';
+import { BrokerModule } from '../broker/broker.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Project', schema: ProjectSchema }])],
+  imports: [MongooseModule.forFeature([{ name: 'Project', schema: ProjectSchema }]), BrokerModule],
   controllers: [ProjectsController],
   providers: [ProjectsService],
 })
