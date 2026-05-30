@@ -6,6 +6,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppLogger } from './common/services/app-logger.service';
 import { HttpLoggerInterceptor } from './common/interceptors/http-logger.interceptor';
 import { WinstonLoggerService } from './common/services/winston-logger.service';
+import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -30,7 +31,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new HttpLoggerInterceptor());
+  app.useGlobalInterceptors(new CorrelationIdInterceptor(), new HttpLoggerInterceptor());
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('port') ?? 3000;
