@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import amqp, { Channel, ChannelModel } from 'amqplib';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class BrokerService implements OnModuleInit, OnModuleDestroy {
@@ -20,7 +21,10 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
     },
   ];
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly metrics: MetricsService,
+  ) {
     this.url = this.configService.getOrThrow<string>('rabbitmq.url');
     this.exchange = this.configService.getOrThrow<string>('rabbitmq.exchange');
     this.exchangeType = this.configService.getOrThrow<string>('rabbitmq.exchangeType');
@@ -91,10 +95,13 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
     return this.channel;
   }
 
-  async publish(routingKey: string, event: Record<string, unknown>): Promise<void> {
+  async publish(
+    routingKey: string,
+    event: Record<string, unknown>,
+    correlationId?: string,
+  ): Promise<void> {
     const channel = this.getChannel();
-
-    const correlationId = (event as Record<string, string>)['correlationId'] || 'unknown';
+    const cid = correlationId || (event as Record<string, string>)['correlationId'] || 'unknown';
     const version = (event as Record<string, string>)['version'] || 'unknown';
 
     try {
@@ -105,21 +112,23 @@ export class BrokerService implements OnModuleInit, OnModuleDestroy {
         contentType: 'application/json',
         timestamp: Date.now(),
         headers: {
-          correlationId,
+          correlationId: cid,
           eventVersion: version,
         },
       });
 
       if (!isSent) {
-        this.logger.warn('RabbitMQ buffer is full (backpressure)');
+        this.logger.warn(`RabbitMQ buffer is full (backpressure) — cid: ${cid}`);
+        this.metrics.eventsPublishedTotal.labels(routingKey, 'failed').inc();
+        return;
       }
 
-      this.logger.log(
-        `Event published - routing key: "${routingKey}" | correlationId: ${correlationId}`,
-      );
+      this.metrics.eventsPublishedTotal.labels(routingKey, 'success').inc();
+      this.logger.log(`Event published — routingKey: "${routingKey}" | cid: ${cid}`);
     } catch (error) {
+      this.metrics.eventsPublishedTotal.labels(routingKey, 'failed').inc();
       this.logger.error(
-        `Failed to publish event - routing key: "${routingKey}" | correlationId: ${correlationId}`,
+        `Failed to publish event — routingKey: "${routingKey}" | cid: ${cid}`,
         error,
       );
       throw error;

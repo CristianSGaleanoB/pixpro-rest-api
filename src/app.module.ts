@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -13,6 +13,8 @@ import { BrokerModule } from './broker/broker.module';
 import { ImagesModule } from './images/images.module';
 import { ProjectsModule } from './projects/projects.module';
 import { WinstonLoggerService } from './common/services/winston-logger.service';
+import { MetricsModule } from './metrics/metrics.module';
+import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { WinstonLoggerService } from './common/services/winston-logger.service';
     EventsModule,
     ImagesModule,
     ProjectsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -39,7 +42,10 @@ import { WinstonLoggerService } from './common/services/winston-logger.service';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor,
+    },
   ],
-  exports: [WinstonLoggerService],
 })
 export class AppModule {}
