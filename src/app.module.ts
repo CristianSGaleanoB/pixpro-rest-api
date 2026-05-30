@@ -12,6 +12,7 @@ import { EventsModule } from './events/events.module';
 import { BrokerModule } from './broker/broker.module';
 import { ImagesModule } from './images/images.module';
 import { ProjectsModule } from './projects/projects.module';
+import { WinstonLoggerService } from './common/services/winston-logger.service';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ProjectsModule } from './projects/projects.module';
   controllers: [AppController],
   providers: [
     AppService,
+    WinstonLoggerService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
@@ -38,5 +40,6 @@ import { ProjectsModule } from './projects/projects.module';
       useClass: RolesGuard,
     },
   ],
+  exports: [WinstonLoggerService],
 })
 export class AppModule {}

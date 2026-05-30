@@ -5,11 +5,14 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { ValidationPipe } from '@nestjs/common';
 import { AppLogger } from './common/services/app-logger.service';
 import { HttpLoggerInterceptor } from './common/interceptors/http-logger.interceptor';
+import { WinstonLoggerService } from './common/services/winston-logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    bufferLogs: true,
   });
+
+  app.useLogger(app.get(WinstonLoggerService));
 
   app.enableCors({
     origin: true,
