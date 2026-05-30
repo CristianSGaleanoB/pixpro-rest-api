@@ -12,7 +12,7 @@ export class HttpLoggerInterceptor implements NestInterceptor {
     const response = context.switchToHttp().getResponse<Response>();
     const { method, url } = request;
     const startTime = Date.now();
-    const correlationId = (request as Record<string, string>)['x-correlation-id'];
+    const correlationId = (request as unknown as Record<string, string>)['x-correlation-id'];
 
     this.logger.log(`→ ${method} ${url} [${correlationId}]`);
 
